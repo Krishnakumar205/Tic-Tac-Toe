@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic-Tac-Toe</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-image: 'C:\Users\SRI RENGANATHAN\Downloads\xo.jpg'); /* Replace with your background image */
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center center;
+            margin: 0;
+        }
+
+        .container {
+            text-align: center;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+            color: white;
+        }
+
+        h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: #ffeb3b;
+        }
+
+        #game-board {
+            display: grid;
+            grid-template-columns: repeat(3, 120px);
+            grid-template-rows: repeat(3, 120px);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .cell {
+            width: 120px;
+            height: 120px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            font-size: 3em;
+            font-weight: bold;
+            color: transparent;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+        }
+
+        .cell.x {
+            color: #ff5722;
+            text-shadow: 0 0 10px #ff5722, 0 0 20px #ff5722;
+        }
+
+        .cell.o {
+            color: #4caf50;
+            text-shadow: 0 0 10px #4caf50, 0 0 20px #4caf50;
+        }
+
+        .cell:hover {
+            transform: scale(1.1);
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+        }
+
+        .cell.x:before {
+            content: "X";
+            color: #ff5722;
+            font-size: 3em;
+            text-shadow: 0 0 10px #ff5722, 0 0 20px #ff5722;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .cell.x:hover:before {
+            opacity: 1;
+        }
+
+        .cell.o:before {
+            content: "O";
+            color: #4caf50;
+            font-size: 3em;
+            text-shadow: 0 0 10px #4caf50, 0 0 20px #4caf50;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .cell.o:hover:before {
+            opacity: 1;
+        }
+
+        #restart-btn {
+            padding: 15px 30px;
+            font-size: 1.2em;
+            color: white;
+            background-color: #007BFF;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #restart-btn:hover {
+            background-color: #0056b3;
+        }
+
+        /* Win animation */
+        .win .cell {
+            animation: win-bounce 0.5s ease-in-out infinite alternate;
+        }
+
+        @keyframes win-bounce {
+            0% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1.2);
+            }
+        }
+    </style>
+</head>
+<body background="C:\Users\SRI RENGANATHAN\Downloads\xo.jpg">
+    <div class="container">
+        <h1>Tic-Tac-Toe</h1>
+        <div id="game-board">
+            <div class="cell" id="cell-0"></div>
+            <div class="cell" id="cell-1"></div>
+            <div class="cell" id="cell-2"></div>
+            <div class="cell" id="cell-3"></div>
+            <div class="cell" id="cell-4"></div>
+            <div class="cell" id="cell-5"></div>
+            <div class="cell" id="cell-6"></div>
+            <div class="cell" id="cell-7"></div>
+            <div class="cell" id="cell-8"></div>
+        </div>
+        <button id="restart-btn">Restart Game</button>
+    </div>
+    <script>
+        const cells = document.querySelectorAll('.cell');
+        const restartBtn = document.getElementById('restart-btn');
+        let currentPlayer = 'X';
+        let gameActive = true;
+        let board = ['', '', '', '', '', '', '', '', ''];
+
+        const winningConditions = [
+            [0, 1, 2],
+            [3, 4, 5],
+            [6, 7, 8],
+            [0, 3, 6],
+            [1, 4, 7],
+            [2, 5, 8],
+            [0, 4, 8],
+            [2, 4, 6]
+        ];
+
+        function handleCellClick(clickedCellEvent) {
+            const clickedCell = clickedCellEvent.target;
+            const clickedCellIndex = Array.from(cells).indexOf(clickedCell);
+
+            if (board[clickedCellIndex] !== '' || !gameActive) {
+                return;
+            }
+
+            updateCell(clickedCell, clickedCellIndex);
+            checkWinner();
+        }
+
+        function updateCell(cell, index) {
+            board[index] = currentPlayer;
+            cell.textContent = currentPlayer;
+            cell.classList.add(currentPlayer.toLowerCase());
+        }
+
+        function checkWinner() {
+            let roundWon = false;
+
+            for (let i = 0; i < winningConditions.length; i++) {
+                const winCondition = winningConditions[i];
+                let a = board[winCondition[0]];
+                let b = board[winCondition[1]];
+                let c = board[winCondition[2]];
+
+                if (a === '' || b === '' || c === '') {
+                    continue;
+                }
+                if (a === b && b === c) {
+                    roundWon = true;
+                    highlightWinningCells(winCondition);
+                    break;
+                }
+            }
+
+            if (roundWon) {
+                setTimeout(() => alert(`Player ${currentPlayer} wins!`), 100);
+                gameActive = false;
+                return;
+            }
+
+            let roundDraw = !board.includes('');
+            if (roundDraw) {
+                setTimeout(() => alert('Draw!'), 100);
+                gameActive = false;
+                return;
+            }
+
+            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+        }
+
+        function highlightWinningCells(winCondition) {
+            winCondition.forEach(index => {
+                cells[index].parentElement.classList.add('win');
+            });
+        }
+
+        function restartGame() {
+            currentPlayer = 'X';
+            gameActive = true;
+            board = ['', '', '', '', '', '', '', '', ''];
+            cells.forEach(cell => {
+                cell.textContent = '';
+                cell.classList.remove('x', 'o');
+                cell.parentElement.classList.remove('win');
+            });
+        }
+
+        cells.forEach(cell => cell.addEventListener('click', handleCellClick));
+        restartBtn.addEventListener('click', restartGame);
+    </script>
+</body>
+</html>
